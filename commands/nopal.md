@@ -1,0 +1,127 @@
+---
+name: nopal
+description: "Google Workspace 오케스트레이션 — 자연어로 8개 서비스를 자동 조합"
+argument-hint: "[자연어 요청]"
+allowed-tools:
+  - Read
+  - Bash
+  - Glob
+  - Grep
+  - Agent
+---
+
+# /nopal Command
+
+Google Workspace 8개 서비스(Gmail, Calendar, Drive, Sheets, Docs, Slides, Chat, Tasks)를 자연어로 자동 조합하여 실행한다.
+
+사용자 요청: `$ARGUMENTS`
+
+## 규칙
+
+- 모든 질문은 반드시 AskUserQuestion 도구로 호출한다. 텍스트로 질문하지 않는다.
+- AskUserQuestion을 allowed-tools에 절대 넣지 않는다.
+- gws CLI를 통해서만 Google Workspace와 상호작용한다. 직접 HTTP 호출 금지.
+- 실행 계획을 세운 뒤 반드시 사용자 확인을 받고 실행한다.
+
+## Step 0: 환경 확인 (자동)
+
+gws CLI 설치 여부와 인증 상태를 자동으로 확인한다. 유저에게 묻지 않는다.
+
+### 0-1. gws CLI 설치 확인
+
+Bash로 `command -v gws`를 실행한다.
+
+**미설치인 경우:**
+Read `${CLAUDE_PLUGIN_ROOT}/skills/nopal-setup/SKILL.md` 를 읽고, 해당 가이드에 따라 설치 안내를 진행한다. 설치가 완료될 때까지 오케스트레이션을 진행하지 않는다.
+
+**설치된 경우:** 0-2로 진행.
+
+### 0-2. 인증 상태 확인
+
+Bash로 `gws auth status`를 실행한다.
+
+**인증 안 된 경우:**
+사용자에게 안내한다:
+
+```
+Google Workspace 인증이 필요합니다.
+아래 명령어를 터미널에서 실행해주세요:
+
+  gws auth login
+
+브라우저가 열리면 Google 계정으로 로그인하세요.
+완료되면 다시 /nopal을 실행해주세요.
+```
+
+인증이 완료될 때까지 오케스트레이션을 진행하지 않는다.
+
+**인증 완료:** Step 1로 진행.
+
+## Step 1: 요청 파싱
+
+### 조건 A — `$ARGUMENTS`가 있는 경우
+
+사용자의 자연어 요청을 그대로 오케스트레이션 입력으로 사용한다. Step 2로 바로 진행.
+
+### 조건 B — `$ARGUMENTS`가 없는 경우
+
+**EXECUTE:** AskUserQuestion 도구를 즉시 호출한다:
+
+AskUserQuestion({
+  "questions": [
+    {
+      "question": "무엇을 도와드릴까요?",
+      "header": "Nopal",
+      "multiSelect": false,
+      "options": [
+        {
+          "label": "자유 요청 (추천)",
+          "description": "하고 싶은 작업을 자유롭게 말해주세요. 예: '내일 오후 2시에 팀 회의 잡고 참석자에게 메일 보내줘'"
+        },
+        {
+          "label": "오늘 일정 확인",
+          "description": "오늘 하루의 Google Calendar 일정을 확인합니다."
+        },
+        {
+          "label": "이메일 확인",
+          "description": "Gmail에서 최근 읽지 않은 이메일을 확인합니다."
+        },
+        {
+          "label": "사용법 안내",
+          "description": "Nopal이 할 수 있는 일과 사용 방법을 안내합니다."
+        }
+      ]
+    }
+  ]
+})
+
+답변에 따라:
+- "자유 요청" → 사용자가 입력한 텍스트를 오케스트레이션 입력으로 사용. Step 2로 진행.
+- "오늘 일정 확인" → 요청을 "오늘 일정을 확인해줘"로 설정. Step 2로 진행.
+- "이메일 확인" → 요청을 "읽지 않은 이메일을 확인해줘"로 설정. Step 2로 진행.
+- "사용법 안내" → 아래 안내를 출력하고 종료:
+
+```
+Nopal은 Google Workspace 8개 서비스를 자연어로 자동 조합합니다.
+
+지원 서비스: Gmail, Calendar, Drive, Sheets, Docs, Slides, Chat, Tasks
+
+사용 예시:
+  /nopal 내일 오전 10시에 팀 회의 잡아줘
+  /nopal 지난주 매출 스프레드시트에서 합계 구해줘
+  /nopal 회의록을 Google Docs로 만들고 참석자에게 공유해줘
+  /nopal 읽지 않은 이메일 중 중요한 것만 요약해줘
+
+여러 서비스를 조합하는 복잡한 요청도 가능합니다:
+  /nopal 내일 회의 참석자 목록을 스프레드시트로 만들고 각자에게 메일로 안건 보내줘
+```
+
+## Step 2: 오케스트레이션 실행
+
+Read `${CLAUDE_PLUGIN_ROOT}/skills/nopal-orchestrate/SKILL.md` 를 읽고, 해당 스킬의 워크플로우(5단계)에 따라 사용자 요청을 처리한다.
+
+오케스트레이션 스킬에 전달할 정보:
+- **사용자 요청**: Step 1에서 파싱된 자연어 요청
+- **인증 상태**: Step 0에서 확인 완료
+
+오케스트레이션 스킬이 완료되면 결과를 사용자에게 보여준다.

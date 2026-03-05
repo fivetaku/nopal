@@ -1,0 +1,26 @@
+{
+  "name": "nopal",
+  "version": "0.1.0",
+  "description": "Google Workspace 8개 서비스를 자연어로 오케스트레이션하는 Claude Code 플러그인 — No Opal needed",
+  "author": {
+    "name": "fivetaku",
+    "url": "https://github.com/fivetaku"
+  },
+  "homepage": "https://github.com/fivetaku/nopal",
+  "repository": "https://github.com/fivetaku/nopal",
+  "license": "MIT",
+  "keywords": [
+    "google-workspace",
+    "orchestration",
+    "gws-cli",
+    "gmail",
+    "calendar",
+    "drive",
+    "sheets",
+    "docs",
+    "slides",
+    "chat",
+    "tasks",
+    "automation"
+  ]
+}
