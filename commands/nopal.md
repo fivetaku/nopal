@@ -60,18 +60,26 @@ Google Workspace 초기 설정이 필요합니다. 터미널에서 아래 명령
   Step 5/5: OAuth 인증 정보 — 가장 중요한 단계입니다:
             1. 터미널에 표시된 Step A 링크를 열어 OAuth 동의 화면을 설정하세요
                → User Type: External → 저장
-            2. Step B 링크를 열어 OAuth 클라이언트를 생성하세요
+            2. "Test users" → "Add users" → 본인 이메일 추가 (필수!)
+               이걸 안 하면 "액세스 차단됨" 에러가 납니다
+            3. Step B 링크를 열어 OAuth 클라이언트를 생성하세요
                → "사용자 인증 정보 만들기" → "OAuth 클라이언트 ID"
                → 애플리케이션 유형: 데스크톱 앱
                → 만들기
-            3. 생성된 Client ID와 Client Secret을 터미널에 붙여넣으세요
+            4. 생성된 Client ID와 Client Secret을 터미널에 붙여넣으세요
 
-setup이 끝나면 로그인을 진행합니다. 스코프를 8개 서비스로 제한해야 합니다:
+setup이 끝나면 로그인을 진행합니다.
+테스트 모드 앱은 스코프 ~25개 제한이므로 필요한 서비스만 지정합니다:
 
-  gws auth login --scopes drive,gmail,calendar,sheets,docs,slides,chat,tasks
+  gws auth login --scopes drive,gmail,calendar
 
 URL이 표시되면 직접 브라우저에 복사해서 열어주세요 (자동으로 안 열립니다).
+"Google hasn't verified this app" 경고가 뜨면 → 고급 → 앱으로 이동(안전하지 않음) 클릭.
 Google 계정으로 로그인하고 권한을 승인하면 터미널에 "Authentication successful" 이 표시됩니다.
+
+추가 서비스가 필요하면 나중에 스코프를 추가할 수 있습니다:
+
+  gws auth login --scopes sheets,docs,tasks
 
 완료되면 /nopal을 다시 실행해주세요.
 ```

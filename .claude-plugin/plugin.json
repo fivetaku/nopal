@@ -1,6 +1,6 @@
 {
   "name": "nopal",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Google Workspace 8개 서비스를 자연어로 오케스트레이션하는 Claude Code 플러그인 — No Opal needed",
   "author": {
     "name": "fivetaku",
