@@ -1,6 +1,6 @@
 ---
 name: nopal
-description: "Google Workspace 오케스트레이션 — 자연어로 8개 서비스를 자동 조합"
+description: "Google Workspace 오케스트레이션 — 자연어로 9개 서비스를 자동 조합"
 argument-hint: "[자연어 요청]"
 allowed-tools:
   - Read
@@ -12,7 +12,7 @@ allowed-tools:
 
 # /nopal Command
 
-Google Workspace 8개 서비스(Gmail, Calendar, Drive, Sheets, Docs, Slides, Chat, Tasks)를 자연어로 자동 조합하여 실행한다.
+Google Workspace 9개 서비스(Gmail, Calendar, Drive, Sheets, Docs, Slides, Chat, Tasks, Meet)를 자연어로 자동 조합하여 실행한다.
 
 사용자 요청: `$ARGUMENTS`
 
@@ -42,44 +42,64 @@ Bash로 `gws auth status`를 실행한다.
 
 **인증 안 된 경우:**
 
-사용자에게 아래 안내를 보여준 후 터미널에서 직접 실행하도록 한다. `gws auth setup`은 인터랙티브 TUI이므로 Bash 도구로 실행할 수 없다.
+`gws auth setup`은 인터랙티브 TUI이므로 Bash 도구로 실행할 수 없다. 사용자에게 아래 안내를 텍스트로 보여주고 중단한다.
 
 ```
-Google Workspace 초기 설정이 필요합니다. 터미널에서 아래 명령어를 실행해주세요:
+Google Workspace 초기 설정이 필요합니다.
+터미널에서 아래 명령어를 실행해주세요:
 
   gws auth setup
 
-5단계를 순서대로 진행합니다:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  Step 1/5: gcloud CLI 확인 — 자동 감지됩니다
-  Step 2/5: Google 계정 선택 — 사용할 Google 계정을 선택하세요
-  Step 3/5: GCP 프로젝트 — "Create new project"를 선택하거나 기존 프로젝트를 선택하세요
-  Step 4/5: Workspace API — 8개 서비스를 모두 선택하세요:
-            Google Drive, Google Sheets, Gmail, Google Calendar,
-            Google Docs, Google Slides, Google Tasks, Google Chat
-  Step 5/5: OAuth 인증 정보 — 가장 중요한 단계입니다:
-            1. 터미널에 표시된 Step A 링크를 열어 OAuth 동의 화면을 설정하세요
-               → User Type: External → 저장
-            2. "Test users" → "Add users" → 본인 이메일 추가 (필수!)
-               이걸 안 하면 "액세스 차단됨" 에러가 납니다
-            3. Step B 링크를 열어 OAuth 클라이언트를 생성하세요
-               → "사용자 인증 정보 만들기" → "OAuth 클라이언트 ID"
-               → 애플리케이션 유형: 데스크톱 앱
-               → 만들기
-            4. 생성된 Client ID와 Client Secret을 터미널에 붙여넣으세요
+Step 1/5: gcloud CLI 확인
+  → 자동 감지됩니다. 미설치 시 https://cloud.google.com/sdk/docs/install 참고.
+
+Step 2/5: Google 계정 선택
+  → 사용할 Google 계정을 선택하세요.
+
+Step 3/5: GCP 프로젝트 생성
+  → "Create new project"를 선택하세요 (추천).
+  → 프로젝트 ID 규칙:
+    • 소문자 영문으로 시작
+    • 소문자, 숫자, 하이픈(-) 만 사용 가능
+    • 6~30자
+    • 전 세계에서 유일해야 함 (중복 불가)
+  → 추천 형식: nopal-ws-XXXXXX (예: nopal-ws-830621)
+    뒤에 생년월일이나 랜덤 숫자 6자리를 붙이면 겹칠 확률이 낮습니다.
+
+Step 4/5: Workspace API 선택
+  → Nopal에 필요한 8개를 모두 선택하세요:
+    ✓ Google Drive
+    ✓ Google Sheets
+    ✓ Gmail
+    ✓ Google Calendar
+    ✓ Google Docs
+    ✓ Google Slides
+    ✓ Google Tasks
+    ✓ Google Chat
+  → 나머지(People, Vault, Forms, Keep 등)는 선택하지 않아도 됩니다.
+
+Step 5/5: OAuth 인증 정보 (가장 중요!)
+  1. 터미널에 표시된 Step A 링크를 열어 OAuth 동의 화면 설정
+     → User Type: External → 저장
+  2. "Test users" → "Add users" → 본인 이메일 추가
+     ⚠️  이걸 안 하면 "액세스 차단됨" 에러가 납니다!
+  3. Step B 링크를 열어 OAuth 클라이언트 생성
+     → "사용자 인증 정보 만들기" → "OAuth 클라이언트 ID"
+     → 애플리케이션 유형: 데스크톱 앱 → 만들기
+  4. 생성된 Client ID와 Client Secret을 터미널에 붙여넣기
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 setup이 끝나면 로그인을 진행합니다.
 테스트 모드 앱은 스코프 ~25개 제한이므로 필요한 서비스만 지정합니다:
 
-  gws auth login --scopes drive,gmail,calendar
+  gws auth login --scopes drive,sheets,gmail,calendar,docs,slides,tasks
 
 URL이 표시되면 직접 브라우저에 복사해서 열어주세요 (자동으로 안 열립니다).
-"Google hasn't verified this app" 경고가 뜨면 → 고급 → 앱으로 이동(안전하지 않음) 클릭.
-Google 계정으로 로그인하고 권한을 승인하면 터미널에 "Authentication successful" 이 표시됩니다.
-
-추가 서비스가 필요하면 나중에 스코프를 추가할 수 있습니다:
-
-  gws auth login --scopes sheets,docs,tasks
+"Google hasn't verified this app" 경고 → 고급 → 앱으로 이동(안전하지 않음) 클릭.
+Google 계정으로 로그인하고 권한을 승인하면 "Authentication successful" 이 표시됩니다.
 
 완료되면 /nopal을 다시 실행해주세요.
 ```
@@ -135,7 +155,7 @@ AskUserQuestion({
 ```
 Nopal은 Google Workspace 8개 서비스를 자연어로 자동 조합합니다.
 
-지원 서비스: Gmail, Calendar, Drive, Sheets, Docs, Slides, Chat, Tasks
+지원 서비스: Gmail, Calendar, Drive, Sheets, Docs, Slides, Chat, Tasks, Meet
 
 사용 예시:
   /nopal 내일 오전 10시에 팀 회의 잡아줘
