@@ -66,7 +66,14 @@ Google Workspace 초기 설정이 필요합니다. 터미널에서 아래 명령
                → 만들기
             3. 생성된 Client ID와 Client Secret을 터미널에 붙여넣으세요
 
-설정이 끝나면 /nopal을 다시 실행해주세요.
+setup이 끝나면 로그인을 진행합니다. 스코프를 8개 서비스로 제한해야 합니다:
+
+  gws auth login --scopes drive,gmail,calendar,sheets,docs,slides,chat,tasks
+
+URL이 표시되면 직접 브라우저에 복사해서 열어주세요 (자동으로 안 열립니다).
+Google 계정으로 로그인하고 권한을 승인하면 터미널에 "Authentication successful" 이 표시됩니다.
+
+완료되면 /nopal을 다시 실행해주세요.
 ```
 
 여기서 중단한다. 사용자가 설정을 완료하고 다시 `/nopal`을 실행하면 `gws auth status`로 재확인 후 Step 1로 진행한다.
