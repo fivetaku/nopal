@@ -244,11 +244,11 @@ gws gmail +send --to "user@example.com" --subject "제목" --body "본문"
 # 이메일 보내기 (CC/BCC 포함)
 gws gmail +send --to "user@example.com" --cc "cc@example.com" --subject "제목" --body "본문"
 
-# 이메일 목록 조회
-gws gmail messages list --params '{"userId": "me", "maxResults": 10, "q": "is:unread"}' --format json
+# 이메일 목록 조회 (헬퍼)
+gws gmail +triage --format json
 
 # 이메일 읽기
-gws gmail messages get --params '{"userId": "me", "id": "MESSAGE_ID"}' --format json
+gws gmail users.messages get --params '{"userId": "me", "id": "MESSAGE_ID"}' --format json
 
 # 이메일 분류 (헬퍼)
 gws gmail +triage --days 1 --format json

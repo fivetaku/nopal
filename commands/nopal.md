@@ -53,7 +53,8 @@ Google Workspace 초기 설정이 필요합니다.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Step 1/5: gcloud CLI 확인
-  → 자동 감지됩니다. 미설치 시 https://cloud.google.com/sdk/docs/install 참고.
+  → 자동 감지됩니다.
+  → 미설치 시: https://cloud.google.com/sdk/docs/install
 
 Step 2/5: Google 계정 선택
   → 사용할 Google 계정을 선택하세요.
@@ -69,7 +70,7 @@ Step 3/5: GCP 프로젝트 생성
     뒤에 생년월일이나 랜덤 숫자 6자리를 붙이면 겹칠 확률이 낮습니다.
 
 Step 4/5: Workspace API 선택
-  → Nopal에 필요한 8개를 모두 선택하세요:
+  → Nopal에 필요한 9개를 모두 선택하세요:
     ✓ Google Drive
     ✓ Google Sheets
     ✓ Gmail
@@ -78,28 +79,78 @@ Step 4/5: Workspace API 선택
     ✓ Google Slides
     ✓ Google Tasks
     ✓ Google Chat
+    ✓ Google Meet
   → 나머지(People, Vault, Forms, Keep 등)는 선택하지 않아도 됩니다.
+  → 선택을 적게 할수록 스코프 수가 줄어 인증이 쉬워집니다.
 
 Step 5/5: OAuth 인증 정보 (가장 중요!)
-  1. 터미널에 표시된 Step A 링크를 열어 OAuth 동의 화면 설정
-     → User Type: External → 저장
-  2. "Test users" → "Add users" → 본인 이메일 추가
-     ⚠️  이걸 안 하면 "액세스 차단됨" 에러가 납니다!
-  3. Step B 링크를 열어 OAuth 클라이언트 생성
-     → "사용자 인증 정보 만들기" → "OAuth 클라이언트 ID"
-     → 애플리케이션 유형: 데스크톱 앱 → 만들기
-  4. 생성된 Client ID와 Client Secret을 터미널에 붙여넣기
+
+  ┌─────────────────────────────────────┐
+  │  A. OAuth 동의 화면 설정            │
+  ├─────────────────────────────────────┤
+  │  터미널에 표시된 Step A 링크를 열거나 │
+  │  아래 링크로 직접 이동:              │
+  │                                     │
+  │  https://console.cloud.google.com/  │
+  │  apis/credentials/consent           │
+  │                                     │
+  │  1. User Type: "External" → 만들기  │
+  │  2. 앱 이름 입력 (예: nopal)        │
+  │  3. 지원 이메일: 본인 이메일 선택    │
+  │  4. 나머지는 빈칸 → "저장 후 계속"  │
+  └─────────────────────────────────────┘
+
+  ┌─────────────────────────────────────┐
+  │  ⚠️  B. 테스트 사용자 추가 (필수!)  │
+  ├─────────────────────────────────────┤
+  │  이걸 안 하면 "액세스 차단됨"        │
+  │  (403 access_denied) 에러가 납니다!  │
+  │                                     │
+  │  위 동의 화면 설정에서:              │
+  │  "Test users" 탭 → "+ Add users"    │
+  │  → 본인 Gmail 주소 입력 → 저장      │
+  │                                     │
+  │  또는 직접 이동:                     │
+  │  https://console.cloud.google.com/  │
+  │  apis/credentials/consent/edit      │
+  │  → "테스트 사용자" 단계까지 진행     │
+  └─────────────────────────────────────┘
+
+  ┌─────────────────────────────────────┐
+  │  C. OAuth 클라이언트 ID 생성        │
+  ├─────────────────────────────────────┤
+  │  터미널에 표시된 Step B 링크를 열거나 │
+  │  아래 링크로 직접 이동:              │
+  │                                     │
+  │  https://console.cloud.google.com/  │
+  │  apis/credentials                   │
+  │                                     │
+  │  1. "+ 사용자 인증 정보 만들기"      │
+  │     → "OAuth 클라이언트 ID"          │
+  │  2. 애플리케이션 유형: "데스크톱 앱"  │
+  │  3. 이름: 아무거나 (예: nopal-cli)   │
+  │  4. "만들기" 클릭                    │
+  │  5. Client ID와 Client Secret 복사   │
+  │  6. 터미널에 붙여넣기                │
+  └─────────────────────────────────────┘
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-setup이 끝나면 로그인을 진행합니다.
-테스트 모드 앱은 스코프 ~25개 제한이므로 필요한 서비스만 지정합니다:
+setup이 끝나면 로그인을 진행합니다:
 
-  gws auth login --scopes drive,sheets,gmail,calendar,docs,slides,tasks
+  gws auth login
 
 URL이 표시되면 직접 브라우저에 복사해서 열어주세요 (자동으로 안 열립니다).
-"Google hasn't verified this app" 경고 → 고급 → 앱으로 이동(안전하지 않음) 클릭.
+"Google hasn't verified this app" 경고가 나오면:
+  → "고급" 클릭 → "앱이름(으)로 이동(안전하지 않음)" 클릭
+
 Google 계정으로 로그인하고 권한을 승인하면 "Authentication successful" 이 표시됩니다.
+
+⚠️ "invalid_scope" 에러가 나오면:
+  → Step 4에서 불필요한 API를 너무 많이 선택한 경우입니다.
+  → GCP 콘솔(https://console.cloud.google.com/apis/dashboard)에서
+    불필요한 API를 비활성화하고 다시 로그인해보세요.
+  → 또는 새 프로젝트를 만들어서 필요한 9개 API만 선택하세요.
 
 완료되면 /nopal을 다시 실행해주세요.
 ```
