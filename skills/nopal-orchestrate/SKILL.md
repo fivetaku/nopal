@@ -312,7 +312,9 @@ curl -s -X POST "https://gmail.googleapis.com/gmail/v1/users/me/messages/MESSAGE
 gws calendar +agenda --days 7 --format json
 
 # 일정 생성 (헬퍼)
-gws calendar +insert --title "회의 제목" --start "2026-03-06T14:00:00+09:00" --end "2026-03-06T15:00:00+09:00"
+# --summary (NOT --title), --start, --end 필수. --location, --description, --attendee 선택
+gws calendar +insert --summary "회의 제목" --start "2026-03-06T14:00:00+09:00" --end "2026-03-06T15:00:00+09:00"
+gws calendar +insert --summary "팀 미팅" --start "2026-03-06T14:00:00+09:00" --end "2026-03-06T15:00:00+09:00" --attendee "alice@example.com" --location "회의실 B"
 
 # 일정 생성 (참석자 포함, 직접 API)
 gws calendar events insert --params '{"calendarId": "primary"}' --json '{
@@ -337,8 +339,9 @@ gws calendar events delete --params '{"calendarId": "primary", "eventId": "EVENT
 #### Drive
 
 ```bash
-# 파일 업로드 (헬퍼)
-gws drive +upload --file "/path/to/file.pdf"
+# 파일 업로드 (헬퍼) — 파일 경로는 위치 인자 (--file 아님)
+gws drive +upload /path/to/file.pdf
+gws drive +upload /path/to/file.pdf --parent FOLDER_ID --name "새이름.pdf"
 
 # 파일 목록 조회
 gws drive files list --params '{"q": "name contains '\''Report'\''", "pageSize": 10}' --format json
@@ -360,11 +363,14 @@ gws drive files create --json '{
 #### Sheets
 
 ```bash
-# 시트 읽기 (헬퍼)
-gws sheets +read --spreadsheet-id "SHEET_ID" --range "Sheet1!A1:D" --format json
+# 시트 읽기 (헬퍼) — --spreadsheet (NOT --spreadsheet-id)
+gws sheets +read --spreadsheet "SHEET_ID" --range "Sheet1!A1:D" --format json
+# 한글 시트명은 range에서 제외하고 A1:D만 쓰면 첫 시트 자동 선택
+gws sheets +read --spreadsheet "SHEET_ID" --range "A1:D10" --format json
 
-# 시트에 데이터 추가 (헬퍼)
-gws sheets +append --spreadsheet-id "SHEET_ID" --range "Sheet1!A1" --values '[["이름", "점수"], ["홍길동", "95"]]'
+# 시트에 데이터 추가 (헬퍼) — --spreadsheet, --values (단일 행) 또는 --json-values (다중 행)
+gws sheets +append --spreadsheet "SHEET_ID" --values '이름,점수,홍길동,95'
+gws sheets +append --spreadsheet "SHEET_ID" --json-values '[["이름","점수"],["홍길동","95"]]'
 
 # 새 스프레드시트 생성
 gws sheets spreadsheets create --json '{
@@ -380,8 +386,9 @@ gws sheets spreadsheets.values update --params '{"spreadsheetId": "SHEET_ID", "r
 #### Docs
 
 ```bash
-# 문서 쓰기 (헬퍼)
-gws docs +write --title "회의록" --body "회의 내용..."
+# 문서에 텍스트 추가 (헬퍼) — --document (문서 ID), --text (추가할 텍스트)
+# 기존 문서 끝에 텍스트를 삽입한다. 새 문서 생성은 아래 create 사용
+gws docs +write --document "DOC_ID" --text "회의 내용..."
 
 # 문서 읽기
 gws docs documents get --params '{"documentId": "DOC_ID"}' --format json
@@ -654,10 +661,11 @@ ExecutionPlan:
 
 ```bash
 # Step 1: 시트 데이터 읽기
-SALES_DATA=$(gws sheets +read --spreadsheet-id "SHEET_ID" --range "이번주!A1:D50" --format json)
+SALES_DATA=$(gws sheets +read --spreadsheet "SHEET_ID" --range "A1:D50" --format json)
 
-# Step 2: 보고서 문서 생성 (데이터 분석 결과를 본문에 포함)
-DOC_ID=$(gws docs +write --title "주간 매출 보고서 - 2026 W10" --body "이번 주 매출 요약..." | jq -r '.documentId')
+# Step 2: 보고서 문서 생성 후 내용 추가
+DOC_ID=$(gws docs documents create --json '{"title":"주간 매출 보고서 - 2026 W10"}' --format json | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>console.log(JSON.parse(d).documentId))")
+gws docs +write --document "$DOC_ID" --text "이번 주 매출 요약..."
 
 # Step 3: 팀장에게 메일 발송
 gws gmail +send --to "manager@example.com" --subject "주간 매출 보고서" --body "보고서 링크: https://docs.google.com/document/d/$DOC_ID"
