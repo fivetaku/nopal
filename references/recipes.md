@@ -1,6 +1,6 @@
 # 레시피 패턴
 
-코어 8개 서비스(Gmail, Calendar, Drive, Sheets, Docs, Slides, Chat, Tasks)를 활용하는 실전 레시피 모음.
+코어 9개 서비스(Gmail, Calendar, Drive, Sheets, Docs, Slides, Chat, Tasks, Meet)를 활용하는 실전 레시피 모음.
 AI가 동적으로 gws 명령어를 조합할 때 이 패턴들을 참고한다.
 
 ---

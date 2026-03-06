@@ -204,7 +204,7 @@ AskUserQuestion({
 - "사용법 안내" → 아래 안내를 출력하고 종료:
 
 ```
-Nopal은 Google Workspace 8개 서비스를 자연어로 자동 조합합니다.
+Nopal은 Google Workspace 9개 서비스를 자연어로 자동 조합합니다.
 
 지원 서비스: Gmail, Calendar, Drive, Sheets, Docs, Slides, Chat, Tasks, Meet
 
