@@ -279,14 +279,16 @@ gws gmail users messages send --params '{"userId":"me"}' --json "{\"raw\":\"$RAW
 #   'Cc: cc@example.com',
 #   'Bcc: bcc@example.com',
 
-# 이메일 목록 조회 (헬퍼)
+# 이메일 목록 조회 (헬퍼 — 추천)
 gws gmail +triage --format json
+gws gmail +triage --max 10 --query 'is:unread' --format json
 
-# 이메일 읽기
-gws gmail users messages get --params '{"userId": "me", "id": "MESSAGE_ID"}' --format json
+# 이메일 목록 조회 (API — 세밀한 검색 시)
+# 주의: 반드시 "users messages"로 호출. "messages"만 쓰면 에러남
+gws gmail users messages list --params '{"userId":"me","maxResults":10,"q":"is:unread"}' --format json
 
-# 이메일 분류 (헬퍼)
-gws gmail +triage --days 1 --format json
+# 이메일 상세 읽기
+gws gmail users messages get --params '{"userId":"me","id":"MESSAGE_ID"}' --format json
 
 # 이메일 휴지통 이동 (gws CLI 411 버그 우회 — curl 직접 호출)
 # gws gmail users messages trash는 Content-Length 헤더 누락으로 411 에러 (Issue #182)
