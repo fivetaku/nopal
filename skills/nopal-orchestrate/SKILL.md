@@ -280,12 +280,20 @@ gws gmail users messages send --params '{"userId":"me"}' --json "{\"raw\":\"$RAW
 #   'Bcc: bcc@example.com',
 
 # 이메일 목록 조회 (헬퍼 — 추천)
+# "안 읽은 메일" → 기본 쿼리(is:unread) 사용
 gws gmail +triage --format json
-gws gmail +triage --max 10 --query 'is:unread' --format json
+# "최근 메일", "지금 온 메일" → 읽음 상관없이 최근 메일 전체
+gws gmail +triage --max 10 --query 'newer_than:1d' --format json
+# 특정 조건 검색
+gws gmail +triage --max 10 --query 'from:boss' --format json
+
+# 주의: "메일 확인해줘", "지금 온 메일" 등 일반적 요청은 is:unread가 아닌
+# newer_than:1d 또는 조건 없이 최근 메일을 보여준다. "안 읽은 메일"이라고
+# 명시한 경우에만 is:unread를 사용한다.
 
 # 이메일 목록 조회 (API — 세밀한 검색 시)
 # 주의: 반드시 "users messages"로 호출. "messages"만 쓰면 에러남
-gws gmail users messages list --params '{"userId":"me","maxResults":10,"q":"is:unread"}' --format json
+gws gmail users messages list --params '{"userId":"me","maxResults":10}' --format json
 
 # 이메일 상세 읽기
 gws gmail users messages get --params '{"userId":"me","id":"MESSAGE_ID"}' --format json
