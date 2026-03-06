@@ -1,6 +1,6 @@
 ---
 name: nopal-orchestrate
-description: Nopal 핵심 오케스트레이션 엔진. 사용자의 자연어 요청을 분석하여 Google Workspace 9개 서비스를 동적으로 조합 실행합니다. 커맨드에서 Read로 읽혀 참고 자료로 사용됩니다.
+description: Nopal 핵심 오케스트레이션 엔진. 사용자의 자연어 요청을 분석하여 Google Workspace 9개 서비스를 동적으로 조합 실행합니다. "/nopal", "메일 보내줘", "일정 확인", "회의 준비", "스프레드시트 만들어" 같은 요청에 사용됩니다.
 ---
 
 # Nopal 오케스트레이션 엔진
@@ -182,9 +182,22 @@ references/ 폴더에 `workflows.md`, `recipes.md`가 있으면 참조하여 검
 | 4 | Gmail | 참석자에게 회의록 링크 메일 발송 | 1, 2, 3 |
 ```
 
-**3-4. 사용자 확인**
+**3-4. 사용자 확인 (조건부)**
 
-계획을 마크다운 테이블로 사용자에게 보여준다.
+**읽기 전용 단순 조회는 확인 없이 바로 실행한다.**
+
+| 실행 유형 | 확인 | 이유 |
+|-----------|------|------|
+| 단순 조회 (read-only) | **생략 → 바로 Step 4** | 부작용 없음. 속도 우선 |
+| 단순 실행 (write 1개) | 확인 필요 | 데이터 변경 |
+| 복합 조합 (2+ 서비스) | 확인 필요 | 여러 서비스 변경 |
+
+**단순 조회 판별 기준:**
+- 서비스 1개만 사용
+- 명령어가 `list`, `get`, `+triage`, `+agenda` 등 읽기 전용
+- `create`, `send`, `insert`, `update`, `delete`, `trash`, `modify`, `patch` 등 쓰기 동작이 없음
+
+단순 조회가 아닌 경우, 계획을 마크다운 테이블로 보여주고 확인을 받는다.
 
 **EXECUTE:** AskUserQuestion 도구를 호출하여 확인을 받는다:
 
@@ -237,21 +250,49 @@ AskUserQuestion({
 
 #### Gmail
 
-```bash
-# 이메일 보내기 (헬퍼)
-gws gmail +send --to "user@example.com" --subject "제목" --body "본문"
+**이메일 발송 — 한글 인코딩 필수 규칙:**
 
-# 이메일 보내기 (CC/BCC 포함)
-gws gmail +send --to "user@example.com" --cc "cc@example.com" --subject "제목" --body "본문"
+`gws gmail +send`는 한글 제목을 RFC 2047 인코딩하지 않아 수신 시 깨진다.
+**한글이 포함된 메일은 반드시 아래 raw API 방식을 사용한다.**
+
+```bash
+# 이메일 보내기 (한글 지원 — raw API)
+# 1. RFC 2822 메시지를 만들어 base64url로 인코딩
+RAW=$(node -e "
+const to='user@example.com';
+const subject='한글 제목';
+const body='한글 본문 내용';
+const mime=[
+  'MIME-Version: 1.0',
+  'Content-Type: text/plain; charset=utf-8',
+  'Content-Transfer-Encoding: base64',
+  'To: '+to,
+  'Subject: =?UTF-8?B?'+Buffer.from(subject).toString('base64')+'?=',
+  '',
+  Buffer.from(body).toString('base64')
+].join('\r\n');
+process.stdout.write(Buffer.from(mime).toString('base64url'));
+")
+gws gmail users messages send --params '{"userId":"me"}' --json "{\"raw\":\"$RAW\"}"
+
+# CC/BCC 포함 시 mime 배열에 추가:
+#   'Cc: cc@example.com',
+#   'Bcc: bcc@example.com',
 
 # 이메일 목록 조회 (헬퍼)
 gws gmail +triage --format json
 
 # 이메일 읽기
-gws gmail users.messages get --params '{"userId": "me", "id": "MESSAGE_ID"}' --format json
+gws gmail users messages get --params '{"userId": "me", "id": "MESSAGE_ID"}' --format json
 
 # 이메일 분류 (헬퍼)
 gws gmail +triage --days 1 --format json
+
+# 이메일 휴지통 이동 (gws CLI 411 버그 우회 — curl 직접 호출)
+# gws gmail users messages trash는 Content-Length 헤더 누락으로 411 에러 (Issue #182)
+TOKEN=$(node -e "const fs=require('fs'),p=process.env.GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE||process.env.HOME+'/.config/gws/credentials.json',c=JSON.parse(fs.readFileSync(p));fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'grant_type=refresh_token&client_id='+c.client_id+'&client_secret='+c.client_secret+'&refresh_token='+c.refresh_token}).then(r=>r.json()).then(d=>process.stdout.write(d.access_token))")
+curl -s -X POST "https://gmail.googleapis.com/gmail/v1/users/me/messages/MESSAGE_ID/trash" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Length: 0"
 ```
 
 #### Calendar

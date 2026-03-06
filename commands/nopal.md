@@ -21,7 +21,7 @@ Google Workspace 9개 서비스(Gmail, Calendar, Drive, Sheets, Docs, Slides, Ch
 - 모든 질문은 반드시 AskUserQuestion 도구로 호출한다. 텍스트로 질문하지 않는다.
 - AskUserQuestion을 allowed-tools에 절대 넣지 않는다.
 - gws CLI를 통해서만 Google Workspace와 상호작용한다. 직접 HTTP 호출 금지.
-- 실행 계획을 세운 뒤 반드시 사용자 확인을 받고 실행한다.
+- 읽기 전용 단순 조회(일정 확인, 메일 확인 등)는 확인 없이 바로 실행한다. 쓰기/변경 작업만 사용자 확인을 받는다.
 
 ## Step 0: 환경 확인 (자동)
 

@@ -6,24 +6,43 @@ gws gmail <resource> <method> [flags]
 
 ## 헬퍼 명령어
 
-### +send -- 이메일 발송
+### +send -- 이메일 발송 (ASCII 전용)
+
+> **주의:** `+send`는 한글 등 non-ASCII 문자를 RFC 2047 인코딩하지 않아 수신 시 깨진다.
+> **한글이 포함된 메일은 반드시 아래 raw API 방식을 사용한다.**
 
 ```bash
+# ASCII 전용 (영문만)
 gws gmail +send --to <EMAIL> --subject <SUBJECT> --body <TEXT>
 ```
 
-| 플래그 | 필수 | 설명 |
-|--------|------|------|
-| `--to` | O | 수신자 이메일 |
-| `--subject` | O | 제목 |
-| `--body` | O | 본문 (plain text) |
+- **write 명령** -- 실행 전 사용자 확인 필수
+
+### 한글 이메일 발송 (raw API — 권장)
 
 ```bash
-gws gmail +send --to alice@example.com --subject 'Hello' --body 'Hi Alice!'
+RAW=$(node -e "
+const to='user@example.com';
+const subject='한글 제목';
+const body='한글 본문 내용';
+const cc='';  // CC가 있으면 이메일 입력
+const mime=[
+  'MIME-Version: 1.0',
+  'Content-Type: text/plain; charset=utf-8',
+  'Content-Transfer-Encoding: base64',
+  'To: '+to,
+  cc ? 'Cc: '+cc : null,
+  'Subject: =?UTF-8?B?'+Buffer.from(subject).toString('base64')+'?=',
+  '',
+  Buffer.from(body).toString('base64')
+].filter(Boolean).join('\r\n');
+process.stdout.write(Buffer.from(mime).toString('base64url'));
+")
+gws gmail users messages send --params '{"userId":"me"}' --json "{\"raw\":\"$RAW\"}"
 ```
 
-- RFC 2822 포맷 및 base64 인코딩 자동 처리
-- HTML, 첨부파일, CC/BCC는 직접 API 사용: `gws gmail users messages send --json '...'`
+- RFC 2047 + base64url 인코딩으로 한글 제목/본문 완벽 지원
+- CC/BCC: `cc`, `bcc` 변수에 이메일 입력
 - **write 명령** -- 실행 전 사용자 확인 필수
 
 ### +triage -- 받은편지함 요약
@@ -102,7 +121,13 @@ gws gmail users messages send --params '{"userId": "me"}' --json '{"raw": "BASE6
 gws gmail users messages modify --params '{"userId": "me", "id": "MSG_ID"}' --json '{"removeLabelIds": ["UNREAD"]}'
 gws gmail users messages modify --params '{"userId": "me", "id": "MSG_ID"}' --json '{"removeLabelIds": ["INBOX"]}'
 
-# 메시지 삭제
+# 메시지 휴지통 이동 (gws CLI 411 버그 우회 — curl 직접 호출)
+# gws gmail users messages trash는 Content-Length 헤더 누락으로 411 에러 발생 (Issue #182)
+TOKEN=$(node -e "const fs=require('fs'),p=process.env.GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE||process.env.HOME+'/.config/gws/credentials.json',c=JSON.parse(fs.readFileSync(p));fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'grant_type=refresh_token&client_id='+c.client_id+'&client_secret='+c.client_secret+'&refresh_token='+c.refresh_token}).then(r=>r.json()).then(d=>process.stdout.write(d.access_token))")
+curl -s -X POST "https://gmail.googleapis.com/gmail/v1/users/me/messages/MSG_ID/trash" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Length: 0"
+
+# 메시지 영구 삭제
 gws gmail users messages delete --params '{"userId": "me", "id": "MSG_ID"}'
 ```
 
