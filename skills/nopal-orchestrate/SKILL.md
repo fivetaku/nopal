@@ -298,11 +298,12 @@ gws gmail users messages list --params '{"userId":"me","maxResults":10}' --forma
 # 이메일 상세 읽기
 gws gmail users messages get --params '{"userId":"me","id":"MESSAGE_ID"}' --format json
 
-# 이메일 휴지통 이동 (gws CLI 411 버그 우회 — curl 직접 호출)
-# gws gmail users messages trash는 Content-Length 헤더 누락으로 411 에러 (Issue #182)
-TOKEN=$(node -e "const fs=require('fs'),p=process.env.GOOGLE_WORKSPACE_CLI_CREDENTIALS_FILE||process.env.HOME+'/.config/gws/credentials.json',c=JSON.parse(fs.readFileSync(p));fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'grant_type=refresh_token&client_id='+c.client_id+'&client_secret='+c.client_secret+'&refresh_token='+c.refresh_token}).then(r=>r.json()).then(d=>process.stdout.write(d.access_token))")
-curl -s -X POST "https://gmail.googleapis.com/gmail/v1/users/me/messages/MESSAGE_ID/trash" \
-  -H "Authorization: Bearer $TOKEN" -H "Content-Length: 0"
+# 이메일 휴지통 이동
+# 방법 1: gws CLI 직접 호출 (0.4.x에서 411 버그 수정 여부 확인 필요)
+gws gmail users messages trash --params '{"userId":"me","id":"MESSAGE_ID"}'
+
+# 방법 2: 411 에러 발생 시 라벨 수정으로 대체
+gws gmail users messages modify --params '{"userId":"me","id":"MESSAGE_ID"}' --json '{"addLabelIds":["TRASH"]}'
 ```
 
 #### Calendar

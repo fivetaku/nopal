@@ -127,12 +127,11 @@ gws auth login
 - "Google hasn't verified this app" 경고 → **고급** → **앱으로 이동(안전하지 않음)** 클릭.
 - Google 계정으로 로그인하고 권한을 승인하면 "Authentication successful" 표시.
 
-**로그인 후 반드시 실행:**
+**로그인 후 확인:**
 ```bash
-gws auth export --unmasked > ~/.config/gws/credentials.json
+gws auth list
 ```
-이 명령어로 plain credentials 파일을 생성해야 Claude Code에서 gws를 사용할 수 있다.
-(암호화된 credentials.enc는 OS Keyring에 의존하여 Bash 도구에서 접근이 안 될 수 있다.)
+기본 계정이 표시되면 인증 완료다. gws 0.4.x부터 멀티계정 암호화 인증을 사용하므로 별도의 export 작업이 필요 없다.
 
 ### 인증 확인
 
@@ -148,11 +147,11 @@ gws auth status
 
 | 증상 | 원인 | 해결 방법 |
 |------|------|----------|
-| `Token expired` | OAuth 토큰 만료 | `gws auth login` 재실행 후 `gws auth export --unmasked > ~/.config/gws/credentials.json` |
+| `Token expired` | OAuth 토큰 만료 | `gws auth login --account <이메일>` 재실행 |
 | `Invalid credentials` | 토큰 파일 손상 | `gws auth logout` 후 재로그인 |
 | `액세스 차단됨` / `Access blocked` (403) | Test user 미등록 | GCP 콘솔(https://console.cloud.google.com/apis/credentials/consent) → Test users → 본인 이메일 추가 |
 | `invalid_scope` (400) | 스코프 과다 (25개 초과) | 불필요한 API 비활성화(https://console.cloud.google.com/apis/dashboard) 또는 새 프로젝트 생성 |
-| `No credentials provided` (401) | 레거시 credentials.enc 충돌 | `gws auth export --unmasked > ~/.config/gws/credentials.json` 후 credentials.enc 삭제 |
+| `No credentials provided` (401) | 레거시 평문 `credentials.json` 충돌 | `~/.config/gws/credentials.json` 파일이 있으면 삭제 또는 이름 변경. 멀티계정 인증과 충돌함 |
 | 브라우저가 안 열림 | URL 자동 오픈 미지원 | 터미널에 표시된 URL을 직접 복사해서 브라우저에 붙여넣기 |
 | 조직 계정 제한 | Google Workspace 관리자 정책 | 관리자에게 gws CLI 앱 허용 요청 |
 | 프로젝트 ID 중복 에러 | 이미 사용 중인 ID | 뒤에 랜덤 숫자를 변경하여 재시도 |
@@ -165,6 +164,8 @@ gws auth setup
 ```
 
 모든 토큰을 삭제하고 처음부터 다시 설정한다.
+
+> **주의:** `~/.config/gws/credentials.json` 평문 파일이 남아 있으면 멀티계정 인증이 무시된다. 해당 파일이 있으면 반드시 삭제하거나 이름을 변경한다.
 
 ---
 
