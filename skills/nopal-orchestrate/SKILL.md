@@ -298,12 +298,8 @@ gws gmail users messages list --params '{"userId":"me","maxResults":10}' --forma
 # 이메일 상세 읽기
 gws gmail users messages get --params '{"userId":"me","id":"MESSAGE_ID"}' --format json
 
-# 이메일 휴지통 이동
-# 방법 1: gws CLI 직접 호출 (0.4.x에서 411 버그 수정 여부 확인 필요)
+# 이메일 휴지통 이동 (gws 0.6.1+ 에서 411 버그 수정됨)
 gws gmail users messages trash --params '{"userId":"me","id":"MESSAGE_ID"}'
-
-# 방법 2: 411 에러 발생 시 라벨 수정으로 대체
-gws gmail users messages modify --params '{"userId":"me","id":"MESSAGE_ID"}' --json '{"addLabelIds":["TRASH"]}'
 ```
 
 #### Calendar

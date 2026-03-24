@@ -121,12 +121,8 @@ gws gmail users messages send --params '{"userId": "me"}' --json '{"raw": "BASE6
 gws gmail users messages modify --params '{"userId": "me", "id": "MSG_ID"}' --json '{"removeLabelIds": ["UNREAD"]}'
 gws gmail users messages modify --params '{"userId": "me", "id": "MSG_ID"}' --json '{"removeLabelIds": ["INBOX"]}'
 
-# 메시지 휴지통 이동
-# 방법 1: gws CLI 직접 호출 (0.4.x에서 411 버그 수정 여부 확인 필요)
+# 메시지 휴지통 이동 (gws 0.6.1+ 에서 411 버그 수정됨)
 gws gmail users messages trash --params '{"userId":"me","id":"MSG_ID"}'
-
-# 방법 2: 411 에러 발생 시 라벨 수정으로 대체
-gws gmail users messages modify --params '{"userId":"me","id":"MSG_ID"}' --json '{"addLabelIds":["TRASH"]}'
 
 # 메시지 영구 삭제
 gws gmail users messages delete --params '{"userId": "me", "id": "MSG_ID"}'
