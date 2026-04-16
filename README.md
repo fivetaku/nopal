@@ -1,137 +1,157 @@
-# Nopal
+English | [한국어](README.ko.md)
 
-> **No + Opal = Nopal** — Google Workspace 9개 서비스를 자연어로 자동 조합
+# nopal
 
-Google Opal이 Google 생태계 안에서만 동작하는 것과 달리, Nopal은 Claude Code 터미널 안에서 자연어로 9개 서비스를 동적으로 조합합니다.
+> **Google Workspace orchestration, powered by natural language.**
 
----
+Turn a plain sentence into a coordinated action across Gmail, Calendar, Drive, Docs, Sheets, Slides, Meet, Tasks, and Chat — all without leaving Claude Code.
 
-## 이런 분을 위한 도구입니다
-
-- 터미널을 떠나지 않고 Google Workspace를 조작하고 싶은 개발자
-- 여러 서비스를 엮는 반복 작업(일정 확인 → 문서 작성 → 메일 발송)을 자동화하고 싶은 분
-- Claude Code 안에서 Gmail, Calendar, Drive, Sheets 등을 바로 쓰고 싶은 분
+[Quick Start](#quick-start) • [Why nopal?](#why-nopal) • [How it works](#how-it-works) • [Services](#services) • [Requirements](#requirements)
 
 ---
 
-## 어떻게 작동하나요?
+## Quick Start
 
-```
-사용자: "회의 준비해줘"
-     │
-     ▼
-/nopal (환경 확인)
-     │
-     ├─ gws 미설치? → 자동 설치 시도 / 인증 안내
-     │
-     └─ gws 설치됨 → 오케스트레이션 시작
-          │
-          ├─ 1. 의도 파악: 어떤 서비스가 필요한지 분석
-          ├─ 2. 인터뷰: 부족한 정보를 질문으로 수집
-          ├─ 3. 계획 수립: 쓰기 작업만 확인, 읽기는 바로 실행
-          ├─ 4. 실행: gws CLI로 서비스 순차 실행
-          └─ 5. 결과 요약: 실행 결과 + 다음 액션 제안
-```
-
----
-
-## 설치 방법
-
-### 1. 마켓플레이스 등록 (처음 한 번만)
+### 1. Add the marketplace (once)
 
 ```
 /plugin marketplace add https://github.com/fivetaku/gptaku_plugins.git
 ```
 
-### 2. 플러그인 설치
+### 2. Install nopal
 
 ```
 /plugin install nopal
 ```
 
-> 설치 후에는 Claude Code를 **재시작**하세요.
+Restart Claude Code after installation.
 
-### 처음 시작하기
+### 3. Set up gws CLI (once)
+
+nopal uses [gws CLI](https://github.com/googleworkspace/cli) to talk to Google Workspace. Install it first:
+
+```bash
+npm install -g @googleworkspace/cli
+```
+
+Then run the one-time OAuth setup in your terminal:
+
+```bash
+gws auth setup
+```
+
+This walks you through creating a GCP project, enabling the 9 Workspace APIs, and authorizing your Google account. After setup, log in:
+
+```bash
+gws auth login
+```
+
+After login, export credentials so Claude Code can use gws in headless mode:
+
+```bash
+gws auth export --unmasked 2>/dev/null | grep -v '^Using keyring' > ~/.config/gws/credentials.json
+```
+
+### 4. Run
 
 ```
 /nopal
 ```
 
-처음 실행하면 `gws` CLI 설치와 Google OAuth 인증을 안내합니다.
-
----
-
-## 핵심 기능
-
-### 1. 자연어 오케스트레이션
-
-9개 서비스를 자연어 한마디로 자동 조합합니다. 미리 정해진 워크플로우가 아닌 동적 조합입니다.
+No arguments needed — nopal asks what you want. Or go directly:
 
 ```
-/nopal 오늘 일정 알려줘
-/nopal 내일 오후 2시에 팀 회의 잡고 참석자에게 메일 보내줘
-/nopal 시트에 있는 수신자한테 뉴스레터 보내줘
-/nopal 회의록을 Google Docs로 만들고 참석자에게 공유해줘
-/nopal 오늘 마감인 할일 확인하고 못 끝낸 거 내일로 옮겨줘
+/nopal schedule a team standup for tomorrow at 10am and email the attendees the agenda
+/nopal check my unread emails and summarize the important ones
+/nopal create a meeting notes doc and share it with last week's attendees
+/nopal pull the Q1 sales data from Sheets and send a summary to the team chat
 ```
 
-### 2. 인터뷰 기반 정보 수집
+---
 
-모호한 요청도 괜찮습니다. 부족한 정보는 질문으로 채워서 완전한 워크플로우를 실행합니다.
+## Why nopal?
 
-### 3. 스마트 실행 분류
-
-읽기 전용 조회는 확인 없이 바로 실행하고, 쓰기/변경 작업만 사용자 확인을 받습니다.
+- **One command, any service** — describe what you want in plain language; nopal figures out which services to invoke and in what order
+- **Dynamic composition** — not a fixed workflow library; services are selected and chained based on each request
+- **Interview-driven** — if information is missing, nopal asks before acting (not after)
+- **Read vs. write distinction** — read-only queries execute immediately; write and modify actions always get your confirmation first
+- **Lives in Claude Code** — no new app, no browser tab, no context switch
+- **No credentials in Claude** — gws CLI owns the OAuth tokens; nopal never touches them directly
 
 ---
 
-## 지원 서비스
+## How it works
 
-| 서비스 | 주요 용도 | 단축 명령 |
-|--------|----------|-----------|
-| Gmail | 이메일 보내기/읽기/관리 | `+send`, `+triage`, `+watch` |
-| Calendar | 일정/이벤트 관리 | `+insert`, `+agenda` |
-| Drive | 파일/폴더/공유 관리 | `+upload` |
-| Sheets | 스프레드시트 읽기/쓰기 | `+read`, `+append` |
-| Docs | 문서 읽기/쓰기 | `+write` |
-| Slides | 프레젠테이션 생성/편집 | — |
-| Chat | 채팅 스페이스/메시지 | `+send` |
-| Tasks | 할일 목록/태스크 관리 | — |
-| Meet | 회의 링크 생성/참가자/녹화/스크립트 | — |
+```
+You: "schedule a team meeting tomorrow at 2pm and email attendees"
+     │
+     ▼
+/nopal
+     │
+     ├─ gws not installed? → auto-install attempt / setup guidance
+     │
+     └─ gws ready → orchestration begins
+          │
+          ├─ 1. Parse intent      — which services are needed?
+          ├─ 2. Interview         — fetch live data, ask only what's missing
+          ├─ 3. Plan              — confirm write actions, skip read-only ones
+          ├─ 4. Execute           — run gws commands sequentially
+          └─ 5. Report            — summarize results + suggest next steps
+```
 
----
+Multi-service requests resolve naturally:
 
-## 구성요소
-
-| 구성요소 | 설명 |
-|----------|------|
-| 커맨드 | `/nopal` — 단일 진입점, 환경 확인 + 오케스트레이션 라우터 |
-| 스킬 | `nopal-orchestrate` — 핵심 오케스트레이션 엔진 (5단계 워크플로우) |
-| 스킬 | `nopal-setup` — gws CLI 설치 및 OAuth 인증 가이드 |
-| 레퍼런스 | `references/gws-*.md` — 9개 서비스별 API 가이드 |
-
----
-
-## 알려진 이슈
-
-| 이슈 | 상태 | 우회 방법 |
-|------|------|-----------|
-| Gmail trash 411 에러 | gws 0.6.1+에서 수정됨 | 최신 버전 사용 |
-| Gmail `+send` 한글 깨짐 | gws CLI 버그 | raw API 인코딩 (자동 적용) |
-| `gws auth export` 로그 혼입 | `Using keyring backend` 로그가 JSON에 섞임 | `2>/dev/null \| grep -v '^Using keyring'` 필터 적용 |
+- "add attendees to tomorrow's meeting and send them the doc" → Calendar + Drive + Gmail
+- "create a newsletter from the Sheets data and send it" → Sheets + Gmail
+- "write meeting notes and post them to the team Chat space" → Docs + Chat
 
 ---
 
-## 요구사항
+## Services
 
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) 설치
-- [gws CLI](https://github.com/googleworkspace/cli) 설치 (`npm install -g @googleworkspace/cli`)
-- Google Workspace 계정 + OAuth 인증 (`gws auth login`)
-
-> gws CLI 설치와 인증은 `/nopal` 첫 실행 시 자동으로 안내됩니다.
+| Service | What nopal can do | Helper commands |
+|---------|-------------------|-----------------|
+| Gmail | Send, read, triage, watch | `+send`, `+triage`, `+watch` |
+| Calendar | Create events, check agenda | `+insert`, `+agenda` |
+| Drive | Upload files, manage sharing | `+upload` |
+| Sheets | Read/append spreadsheet data | `+read`, `+append` |
+| Docs | Read and write documents | `+write` |
+| Slides | Create and edit presentations | — |
+| Chat | Send messages to spaces | `+send` |
+| Tasks | Manage to-do lists | — |
+| Meet | Create meeting links, get participants and transcripts | — |
 
 ---
 
-## 라이선스
+## Known Issues
+
+| Issue | Status | Workaround |
+|-------|--------|------------|
+| Gmail trash 411 error | Fixed in gws 0.6.1+ | Use latest version |
+| `+send` Korean encoding | gws CLI bug | Raw API encoding applied automatically |
+| `gws auth export` log pollution | `Using keyring backend` mixed into JSON | `2>/dev/null \| grep -v '^Using keyring'` filter applied |
+
+---
+
+## Requirements
+
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
+- [gws CLI](https://github.com/googleworkspace/cli) — `npm install -g @googleworkspace/cli`
+- Google Workspace account + OAuth setup (`gws auth setup` + `gws auth login`)
+- Node.js 18+
+
+> When you run `/nopal` for the first time, it checks for gws and guides you through setup automatically.
+
+---
+
+## License
 
 MIT
+
+---
+
+<div align="center">
+
+**No Opal needed.**
+
+</div>
