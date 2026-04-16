@@ -1,6 +1,6 @@
 ---
 name: nopal-orchestrate
-description: Nopal 핵심 오케스트레이션 엔진. 사용자의 자연어 요청을 분석하여 Google Workspace 9개 서비스를 동적으로 조합 실행합니다. "/nopal", "메일 보내줘", "일정 확인", "회의 준비", "스프레드시트 만들어" 같은 요청에 사용됩니다.
+description: Core Nopal orchestration engine — analyzes natural-language requests and dynamically composes execution across 9 Google Workspace services (Gmail, Calendar, Drive, Docs, Sheets, Slides, Meet, Tasks, Chat) via gws CLI. Korean triggers: "/nopal", "메일 보내줘", "일정 확인", "회의 준비", "스프레드시트 만들어". English triggers: "send email", "check calendar", "prepare meeting", "create spreadsheet".
 ---
 
 # Nopal 오케스트레이션 엔진

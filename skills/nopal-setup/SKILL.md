@@ -1,6 +1,6 @@
 ---
 name: nopal-setup
-description: gws CLI 설치 및 Google Workspace OAuth 인증 가이드. gws CLI가 설치되지 않았거나 인증이 필요할 때 커맨드에서 Read로 읽혀 참고 자료로 사용됩니다. "gws 설치", "인증 안내", "OAuth 설정", "setup" 같은 요청에 사용됩니다.
+description: gws CLI installation and Google Workspace OAuth setup guide. Referenced by the command when gws CLI is missing or authentication is needed. Korean triggers: "gws 설치", "인증 안내", "OAuth 설정". English triggers: "install gws", "setup", "OAuth setup", "gws authentication".
 ---
 
 # Nopal Setup — gws CLI 설치 및 인증 가이드
