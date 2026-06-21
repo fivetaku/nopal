@@ -133,8 +133,10 @@ gws auth login
 **로그인 후 반드시 실행:**
 ```bash
 gws auth export --unmasked 2>/dev/null | grep -v '^Using keyring' > ~/.config/gws/credentials.json
+chmod 600 ~/.config/gws/credentials.json   # 평문 OAuth 토큰 — 본인만 읽기, 절대 git 커밋 금지
 ```
 이 명령어로 plain credentials 파일을 생성해야 Claude Code에서 gws를 사용할 수 있다.
+**이 파일은 평문 OAuth 토큰이므로** 반드시 `chmod 600`으로 권한을 잠그고, 저장소·백업에 커밋하지 않는다.
 (gws는 암호화된 `credentials.enc`를 OS Keyring으로 복호화하는데, Claude Code의 Bash 도구에서는 Keyring에 접근이 안 될 수 있다.)
 
 > **참고:** `gws auth export` 출력에 `Using keyring backend: keyring` 로그가 섞일 수 있어 `grep -v`로 제거한다. 이 로그가 포함되면 JSON 파싱이 실패한다.
@@ -153,11 +155,11 @@ gws auth status
 
 | 증상 | 원인 | 해결 방법 |
 |------|------|----------|
-| `Token expired` | OAuth 토큰 만료 | `gws auth login` 재실행 후 `gws auth export --unmasked 2>/dev/null \| grep -v '^Using keyring' > ~/.config/gws/credentials.json` |
+| `Token expired` | OAuth 토큰 만료 | `gws auth login` 재실행 후 `gws auth export --unmasked 2>/dev/null \| grep -v '^Using keyring' > ~/.config/gws/credentials.json && chmod 600 ~/.config/gws/credentials.json` |
 | `Invalid credentials` | 토큰 파일 손상 | `gws auth logout` 후 재로그인 |
 | `액세스 차단됨` / `Access blocked` (403) | Test user 미등록 | GCP 콘솔(https://console.cloud.google.com/apis/credentials/consent) → Test users → 본인 이메일 추가 |
 | `invalid_scope` (400) | 스코프 과다 (25개 초과) | 불필요한 API 비활성화(https://console.cloud.google.com/apis/dashboard) 또는 새 프로젝트 생성 |
-| `No credentials provided` (401) | Keyring 접근 불가 (headless 환경) | `gws auth export --unmasked 2>/dev/null \| grep -v '^Using keyring' > ~/.config/gws/credentials.json` |
+| `No credentials provided` (401) | Keyring 접근 불가 (headless 환경) | `gws auth export --unmasked 2>/dev/null \| grep -v '^Using keyring' > ~/.config/gws/credentials.json && chmod 600 ~/.config/gws/credentials.json` |
 | 브라우저가 안 열림 | URL 자동 오픈 미지원 | 터미널에 표시된 URL을 직접 복사해서 브라우저에 붙여넣기 |
 | 조직 계정 제한 | Google Workspace 관리자 정책 | 관리자에게 gws CLI 앱 허용 요청 |
 | 프로젝트 ID 중복 에러 | 이미 사용 중인 ID | 뒤에 랜덤 숫자를 변경하여 재시도 |
