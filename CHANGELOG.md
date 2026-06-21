@@ -2,6 +2,7 @@
 
 ## 0.7.2 — 2026-06-21
 
+- The GitHub-star prompt is now shown in the user's current language instead of hardcoded Korean.
 - GitHub star is now **opt-in** — on first run the command asks once via AskUserQuestion (`네, ⭐ 눌러주기` / `아니요`) instead of auto-starring. The star logic moved into `setup.sh` and records the choice (`~/.gptaku-setup/<plugin>.star.json`) so it never re-asks. `setup.sh` no longer stars anything automatically.
 - Docs: corrected the README 'no credentials in Claude' line to match the actual plaintext credential export, and added a `chmod 600` step for the exported token file.
 
