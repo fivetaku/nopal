@@ -50,6 +50,7 @@ After login, export credentials so Claude Code can use gws in headless mode:
 
 ```bash
 gws auth export --unmasked 2>/dev/null | grep -v '^Using keyring' > ~/.config/gws/credentials.json
+chmod 600 ~/.config/gws/credentials.json   # plaintext tokens — keep private, never commit
 ```
 
 ### 4. Run
@@ -76,7 +77,7 @@ No arguments needed — nopal asks what you want. Or go directly:
 - **Interview-driven** — if information is missing, nopal asks before acting (not after)
 - **Read vs. write distinction** — read-only queries execute immediately; write and modify actions always get your confirmation first
 - **Lives in Claude Code** — no new app, no browser tab, no context switch
-- **No credentials in Claude** — gws CLI owns the OAuth tokens; nopal never touches them directly
+- **Credentials stay in gws** — the gws CLI owns the OAuth flow. For headless use it exports tokens to a local `~/.config/gws/credentials.json` (keep it `chmod 600`, never commit it); nopal never embeds credentials in Claude itself
 
 ---
 
