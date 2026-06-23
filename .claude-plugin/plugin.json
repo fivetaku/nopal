@@ -8,7 +8,7 @@
   },
   "homepage": "https://github.com/fivetaku/nopal",
   "repository": "https://github.com/fivetaku/nopal",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "keywords": [
     "google-workspace",
     "orchestration",
