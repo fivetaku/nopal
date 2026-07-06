@@ -1,6 +1,10 @@
-[English](README.md) | 한국어
+[English](README.md) | 한국어 | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md)
 
 # nopal
+
+<p align="center">
+  <img src="assets/nopal-hero-01.png" alt="nopal" width="320">
+</p>
 
 > **자연어로 작동하는 Google Workspace 오케스트레이터**
 

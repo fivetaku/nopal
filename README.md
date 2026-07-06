@@ -1,6 +1,10 @@
-English | [한국어](README.ko.md)
+English | [한국어](README.ko.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md)
 
 # nopal
+
+<p align="center">
+  <img src="assets/nopal-hero-01.png" alt="nopal" width="320">
+</p>
 
 > **Google Workspace orchestration, powered by natural language.**
 
