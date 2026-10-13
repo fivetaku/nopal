@@ -1,0 +1,55 @@
+{
+  "routes": [
+    {
+      "skill": "nopal:nopal",
+      "when": "Gmail·캘린더·드라이브·문서·시트·슬라이드 등 Google Workspace를 다룰 때",
+      "priority": 20,
+      "keywords": [
+        "지메일",
+        "gmail",
+        "구글 캘린더",
+        "google calendar",
+        "캘린더에서",
+        "캘린더 일정",
+        "구글 드라이브",
+        "google drive",
+        "구글 시트",
+        "google sheets",
+        "스프레드시트",
+        "구글 문서",
+        "구글 독스",
+        "google docs",
+        "구글 슬라이드",
+        "google slides",
+        "구글 미트",
+        "google meet",
+        "구글 태스크",
+        "google tasks",
+        "메일함",
+        "안 읽은 메일",
+        "받은 메일"
+      ],
+      "exclude": [
+        "코드",
+        "함수",
+        "컴포넌트",
+        "테스트",
+        "스크립트",
+        "클래스",
+        "엔드포인트",
+        "리팩터",
+        "버그",
+        "에러",
+        "오류",
+        "로깅",
+        "변수",
+        "readme",
+        "code",
+        "function",
+        "test",
+        "api 키",
+        "oauth 코드"
+      ]
+    }
+  ]
+}
