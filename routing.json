@@ -2,7 +2,8 @@
   "routes": [
     {
       "skill": "nopal:nopal",
-      "when": "Gmail·캘린더·드라이브·문서·시트·슬라이드 등 Google Workspace를 다룰 때",
+      "when": "Gmail·캘린더·드라이브·문서·시트·슬라이드 등 Google Workspace를 다룰 때(아래 Gmail 단건 예외 우선)",
+      "skip_when": "이미 적용 중인 전용 업무 스킬에 gws 기반 조회·초안 저장·계정 확인·발송 승인 경계가 갖춰진 Gmail 단건 작업은 Nopal을 중복 호출하지 않고 그 절차를 따른다. 이 예외는 Nopal 명시 요청이나 여러 Google 서비스를 새로 조합하는 작업에는 적용하지 않는다.",
       "priority": 20,
       "keywords": [
         "지메일",
