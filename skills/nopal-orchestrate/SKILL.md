@@ -282,6 +282,28 @@ gws gmail users messages send --params '{"userId":"me"}' --json "{\"raw\":\"$RAW
 #   'Cc: cc@example.com',
 #   'Bcc: bcc@example.com',
 
+# 여러 통을 보낼 때는 위 방식을 함수로 한 번 정의해 재사용한다.
+# 값은 환경변수로 넘겨 따옴표·특수문자가 섞여도 node 코드가 깨지지 않게 한다.
+send_mail_ko() {  # 사용법: send_mail_ko <받는사람> <제목> <본문>
+  local RAW
+  RAW=$(MAIL_TO="$1" MAIL_SUBJECT="$2" MAIL_BODY="$3" node -e "
+const to=process.env.MAIL_TO;
+const subject=process.env.MAIL_SUBJECT;
+const body=process.env.MAIL_BODY;
+const mime=[
+  'MIME-Version: 1.0',
+  'Content-Type: text/plain; charset=utf-8',
+  'Content-Transfer-Encoding: base64',
+  'To: '+to,
+  'Subject: =?UTF-8?B?'+Buffer.from(subject).toString('base64')+'?=',
+  '',
+  Buffer.from(body).toString('base64')
+].join('\r\n');
+process.stdout.write(Buffer.from(mime).toString('base64url'));
+") || return 1
+  gws gmail users messages send --params '{"userId":"me"}' --json "{\"raw\":\"$RAW\"}"
+}
+
 # 이메일 목록 조회 (헬퍼 — 추천)
 # "안 읽은 메일" → 기본 쿼리(is:unread) 사용
 gws gmail +triage --format json
@@ -516,9 +538,9 @@ gws drive permissions create --params "{\"fileId\": \"$FILE_ID\"}" --json '{
 # Step 1: 일정에서 참석자 이메일 추출
 ATTENDEES=$(gws calendar events get --params '{"calendarId": "primary", "eventId": "EVENT_ID"}' --format json | jq -r '.attendees[].email')
 
-# Step 2: 각 참석자에게 메일 발송
+# Step 2: 각 참석자에게 메일 발송 (한글 제목이므로 raw API — 4-2의 send_mail_ko 사용)
 for EMAIL in $ATTENDEES; do
-  gws gmail +send --to "$EMAIL" --subject "회의 안건" --body "내일 회의 안건입니다."
+  send_mail_ko "$EMAIL" "회의 안건" "내일 회의 안건입니다."
 done
 ```
 
@@ -530,12 +552,14 @@ done
 3. 의존하지 않는 나머지 단계는 계속 진행한다.
 4. 전체를 중단하지 않는다.
 
+단, 메일 발송·파일 공유처럼 밖으로 나가는 단계는 의존하는 단계가 하나라도 실패했으면 실행하지 않는다. 첨부나 링크가 빠진 메일은 한번 나가면 되돌릴 수 없기 때문이다.
+
 에러 메시지 예시:
 ```
 Step 3 실패: Drive 파일 공유
   에러: 파일 ID가 유효하지 않습니다.
   원인: Step 2에서 파일 생성에 실패하여 ID를 가져올 수 없었습니다.
-  → Step 4 (메일 발송)는 파일 링크 없이 진행합니다.
+  → Step 4 (메일 발송)는 Step 3에 의존하므로 보내지 않았습니다.
 ```
 
 ---
@@ -642,8 +666,8 @@ gws drive permissions create --params "{\"fileId\": \"$DOC_ID\"}" --json '{
   "emailAddress": "alice@example.com"
 }' --format json
 
-# Step 4: 메일 발송
-gws gmail +send --to "alice@example.com" --subject "내일 팀 회의 안건" --body "안건 문서를 공유드립니다: https://docs.google.com/document/d/$DOC_ID"
+# Step 4: 메일 발송 (한글 제목이므로 raw API — 4-2의 send_mail_ko 사용)
+send_mail_ko "alice@example.com" "내일 팀 회의 안건" "안건 문서를 공유드립니다: https://docs.google.com/document/d/$DOC_ID"
 ```
 
 ### 예시 2: 주간 보고서 자동화
@@ -667,8 +691,8 @@ SALES_DATA=$(gws sheets +read --spreadsheet "SHEET_ID" --range "A1:D50" --format
 DOC_ID=$(gws docs documents create --json '{"title":"주간 매출 보고서 - 2026 W10"}' --format json | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>console.log(JSON.parse(d).documentId))")
 gws docs +write --document "$DOC_ID" --text "이번 주 매출 요약..."
 
-# Step 3: 팀장에게 메일 발송
-gws gmail +send --to "manager@example.com" --subject "주간 매출 보고서" --body "보고서 링크: https://docs.google.com/document/d/$DOC_ID"
+# Step 3: 팀장에게 메일 발송 (한글 제목이므로 raw API — 4-2의 send_mail_ko 사용)
+send_mail_ko "manager@example.com" "주간 매출 보고서" "보고서 링크: https://docs.google.com/document/d/$DOC_ID"
 ```
 
 ### 예시 3: 할일 관리 + 알림
