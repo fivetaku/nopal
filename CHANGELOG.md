@@ -2,7 +2,8 @@
 
 
 ## 0.7.8 — 2026-11-22
-- x
+- Korean-subject mail goes through a raw API helper.
+- Outgoing steps stop if a dependency failed.
 
 ## 0.7.6 — 2026-10-13
 - **Routed through gptaku-core.** Declares `gptaku-core` as a dependency and adds `routing.json`, so requests that match this plugin's skills are pointed to them before Claude handles the work itself or reaches for native tools. Existing users: run `/reload-plugins` after updating, or reinstall the plugin, so gptaku-core gets installed. Opt out with `GPTAKU_ROUTER=off`.
