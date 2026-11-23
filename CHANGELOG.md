@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.8.0 — 2026-11-23
+- Codex에서도 같은 스킬로 동작: `/nopal` 명령에만 있던 환경 확인(gws 설치·인증)과 요청 파싱 절차를 `nopal-orchestrate` 스킬로 옮기고 명령은 얇게 만들었다. Claude Code 동작은 그대로다.
+- Codex 질문 도구 사용법과 경로·인터랙티브 인증 차이를 `references/codex.md`에 추가.
 
 ## 0.7.8 — 2026-11-22
 - Korean-subject mail goes through a raw API helper.

@@ -8,8 +8,87 @@ description: Core Nopal orchestration engine — analyzes natural-language reque
 
 # Nopal 오케스트레이션 엔진
 
-> 이 문서는 커맨드(`commands/nopal.md`)에서 Read로 읽히는 **참고 자료**다.
+> 이 문서는 `/nopal` 명령이 읽도록 넘기는 **실행 절차**이며, Codex에서는 스킬로 직접 실행된다.
 > 사용자 요청을 받아 Google Workspace 서비스를 동적으로 조합하고 실행하는 핵심 로직이다.
+
+---
+
+## 실행 환경 (Claude Code / Codex)
+
+- **Claude Code**: 선택지 질문은 `AskUserQuestion`으로 묻는다.
+- **Codex**: 시작 전에 이 폴더의 `references/codex.md`를 읽는다. async 호출 형식: `{"questions":[{"title":"헤더 — 질문","options":["추천안 (추천) — 설명","대안 — 설명"]}]}` — 문항에는 `title`·`options`만, `question`·`header`·`id`는 넣지 않는다.
+- Codex에서는 `${CLAUDE_PLUGIN_ROOT}`를 이 플러그인 루트(이 SKILL.md에서 두 단계 위 폴더)로 바꿔 읽는다.
+
+## 시작 전: 환경 확인과 요청 파싱
+
+사용자 요청 = 명령 인자(`$ARGUMENTS`) 또는 사용자가 요청에 쓴 내용.
+
+### 시작 전 환경 확인 (자동, 사용자에게 묻지 않는다)
+
+1. Bash로 `command -v gws`. 미설치면 `npm install -g @googleworkspace/cli`로 자동 설치하고 `gws --version`으로 확인한다. 설치 실패 시 `${CLAUDE_PLUGIN_ROOT}/skills/nopal-setup/SKILL.md`를 읽고 수동 설치를 안내한다.
+2. Bash로 `gws auth status`. 인증이 안 됐으면 `gws auth setup`이 인터랙티브 TUI라 Bash로 실행할 수 없으므로, `${CLAUDE_PLUGIN_ROOT}/skills/nopal-setup/SKILL.md`의 설정 절차(5단계 setup → 테스트 사용자 추가 → OAuth 클라이언트 → `gws auth login` → 오류 대처)를 텍스트로 안내하고 중단한다. 사용자가 설정을 끝내고 다시 요청하면 `gws auth status`로 재확인한 뒤 진행한다.
+3. 인증이 완료돼 있으면 요청 파싱으로 간다.
+
+- 읽기 전용 단순 조회(일정 확인, 메일 확인 등)는 확인 없이 바로 실행한다. 쓰기/변경 작업만 사용자 확인을 받는다.
+
+### 요청 파싱
+
+**요청이 있는 경우** — 자연어 요청을 그대로 오케스트레이션 입력으로 쓰고 아래 워크플로우로 진행한다.
+
+**요청이 없는 경우**
+
+**EXECUTE:** 질문 도구를 즉시 호출한다(Claude Code는 AskUserQuestion):
+
+AskUserQuestion({
+  "questions": [
+    {
+      "question": "무엇을 도와드릴까요?",
+      "header": "Nopal",
+      "multiSelect": false,
+      "options": [
+        {
+          "label": "자유 요청 (추천)",
+          "description": "하고 싶은 작업을 자유롭게 말해주세요. 예: '내일 오후 2시에 팀 회의 잡고 참석자에게 메일 보내줘'"
+        },
+        {
+          "label": "오늘 일정 확인",
+          "description": "오늘 하루의 Google Calendar 일정을 확인합니다."
+        },
+        {
+          "label": "이메일 확인",
+          "description": "Gmail에서 최근 읽지 않은 이메일을 확인합니다."
+        },
+        {
+          "label": "사용법 안내",
+          "description": "Nopal이 할 수 있는 일과 사용 방법을 안내합니다."
+        }
+      ]
+    }
+  ]
+})
+
+답변에 따라:
+- "자유 요청" → 사용자가 입력한 텍스트를 오케스트레이션 입력으로 사용. Step 2로 진행.
+- "오늘 일정 확인" → 요청을 "오늘 일정을 확인해줘"로 설정. Step 2로 진행.
+- "이메일 확인" → 요청을 "읽지 않은 이메일을 확인해줘"로 설정. Step 2로 진행.
+- "사용법 안내" → 아래 안내를 출력하고 종료:
+
+```
+Nopal은 Google Workspace 9개 서비스를 자연어로 자동 조합합니다.
+
+지원 서비스: Gmail, Calendar, Drive, Sheets, Docs, Slides, Chat, Tasks, Meet
+
+사용 예시:
+  /nopal 내일 오전 10시에 팀 회의 잡아줘
+  /nopal 지난주 매출 스프레드시트에서 합계 구해줘
+  /nopal 회의록을 Google Docs로 만들고 참석자에게 공유해줘
+  /nopal 읽지 않은 이메일 중 중요한 것만 요약해줘
+
+여러 서비스를 조합하는 복잡한 요청도 가능합니다:
+  /nopal 내일 회의 참석자 목록을 스프레드시트로 만들고 각자에게 메일로 안건 보내줘
+```
+
+요청 파싱이 끝나면 아래 5단계 워크플로우로 처리하고, 완료되면 결과를 사용자에게 보여준다.
 
 ---
 

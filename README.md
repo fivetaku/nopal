@@ -30,6 +30,8 @@ Turn a plain sentence into a coordinated action across Gmail, Calendar, Drive, D
 
 Restart Claude Code after installation.
 
+Codex: `codex plugin marketplace add fivetaku/gptaku_plugins` then `codex plugin add nopal@gptaku-plugins`.
+
 ### 3. Set up gws CLI (once)
 
 nopal uses [gws CLI](https://github.com/googleworkspace/cli) to talk to Google Workspace. Install it first:
